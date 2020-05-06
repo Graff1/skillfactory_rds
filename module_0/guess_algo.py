@@ -12,7 +12,7 @@ def score_game(game_core_v1):
     print(f"The algorithm will quess the nimner after {score} attempts avg.")
     return(score)
 def game_core_v2(number):
-    '''Solution with using binary search algorithm '''
+    '''Solution with binary search algorithm '''
     count = 0
     left = -1
     right = 100
