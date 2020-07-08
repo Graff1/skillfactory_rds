@@ -25,7 +25,3 @@ def game_core_v2(number):
             left = middle
     return count
 
-
-npm install -g ijavascript
-
-
