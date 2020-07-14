@@ -14,19 +14,56 @@
 # ---
 
 # +
-def quantiles(columns):
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from itertools import combinations
+from scipy.stats import ttest_ind
+students = pd.read_csv('stud_math.csv')
+def quantiles_info(columns):
     median = columns.median()
     IQR = columns.quantile(0.75) - columns.quantile(0.25)
     perc25 = columns.quantile(0.25)
     perc75 = columns.quantile(0.75)
-    print('25-й перцентиль: {},'.format(perc25), '75-й перцентиль: {},'.format(perc75)
-          , "IQR: {}, ".format(IQR),"Границы выбросов: [{f}, {l}].".format(f=perc25 - 1.5*IQR, l=perc75 + 1.5*IQR))
+    minimum = columns.min()
+    maximum = columns.max()
+    if minimum < (perc25 - 1.5*IQR) or maximum > (perc75 + 1.5*IQR):
+        print ('Есть выбросы')
+        print('Минимальное значение: {},'.format(minimum),'\nМаксимальное значение: {},'.format(maximum),
+          "\nГраницы выбросов: [{f}, {l}],".format(f=perc25 - 1.5*IQR, l=perc75 + 1.5*IQR),'\n25-й перцентиль: {},'.format(perc25), '75-й перцентиль: {},'.format(perc75)
+          , "IQR: {}, ".format(IQR),)
+    else:
+        print('Нет выбросов')
     
-def replace_na_with_most_frequent(title):
+
+def missing_values_table(df):
+    # Total missing values
+    mis_val = df.isnull().sum()
+        
+    # Percentage of missing values
+    mis_val_percent = 100 * df.isnull().sum() / len(df)
+        
+    # Make a table with the results
+    mis_val_table = pd.concat([mis_val, mis_val_percent], axis=1)
+        
+    # Rename the columns
+    mis_val_table_ren_columns = mis_val_table.rename(
+    columns = {0 : 'Отсутствующие значения', 1 : '% от общего кол-ва '})
+        
+    # Sort the table by percentage of missing descending
+    mis_val_table_ren_columns = mis_val_table_ren_columns[mis_val_table_ren_columns.iloc[:,1] != 0].sort_values('% от общего кол-ва ', ascending=False).round(1)
+        
+    # Print some summary information
+    print ("В датафрейме содержится " + str(df.shape[1]) + " колонок.\n" "В " + str(mis_val_table_ren_columns.shape[0]) +" колонках есть отсутствующие значения.")
+        
+    # Return the dataframe with missing information
+    return mis_val_table_ren_columns 
+    
+def replace_nan_with_most_frequent(title):
     most_frequent = students[title].value_counts().index[0]
     students[title] = students[title].apply(lambda x: most_frequent if pd.isna(x) else x)
     
-def replace_na_with_value(title, value):
+def replace_nan_with_value(title, value):
     students[title] = students[title].apply(lambda x: value if pd.isna(x) else x)
 
 def replace_na_with_median():
@@ -42,7 +79,7 @@ def get_stat_dif(column):
     for comb in combinations_all:
         if ttest_ind(students.loc[students.loc[:, column] == comb[0], 'score'], 
                         students.loc[students.loc[:, column] == comb[1], 'score']).pvalue \
-            <= 0.05/len(combinations_all): # Учли поправку Бонферони
+            <= 0.05/len(combinations_all): 
             print('Найдены статистически значимые различия для колонки', column)
             break
             
@@ -52,6 +89,7 @@ def get_boxplot(column):
     plt.xticks(rotation=45)
     ax.set_title('Boxplot for ' + column)
     plt.show()
+
 # -
 
 
